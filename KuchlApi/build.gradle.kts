@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -35,6 +36,23 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.test)
             }
+        }
+    }
+
+    val xcf = XCFramework()
+    val xcframeworkName = "KuchlApi"
+    val iosTargets = listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64(),
+    )
+
+    iosTargets.forEach {
+        it.binaries.framework {
+            baseName = xcframeworkName
+            xcf.add(this)
+            isStatic = true
+            // binaryOption("bundleId", "org.example.${xcframeworkName}")
         }
     }
 }
