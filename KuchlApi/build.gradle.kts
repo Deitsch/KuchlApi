@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.vanniktech.mavenPublish)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 group = "io.github.kotlin"
@@ -20,39 +21,51 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
 
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                //put your multiplatform dependencies here
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-            }
-        }
-    }
-
+    val xcfName = "KuchlApi"
     val xcf = XCFramework()
-    val xcframeworkName = "KuchlApi"
-    val iosTargets = listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-    )
+    val iosTargets = listOf(iosX64(), iosArm64(), iosSimulatorArm64())
 
     iosTargets.forEach {
         it.binaries.framework {
-            baseName = xcframeworkName
-            xcf.add(this)
+            baseName = xcfName
             isStatic = true
-            // binaryOption("bundleId", "org.example.${xcframeworkName}")
+            export(libs.kotlinx.coroutines.core)
+            export(libs.ktor.client.core)
+            export(libs.kotlinx.serialization.json)
+            export(libs.ktor.serialization.kotlinx.json)
+            xcf.add(this)
         }
     }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(libs.ktor.client.core)
+                api(libs.ktor.client.cio)
+                api(libs.ktor.client.content.negotiation)
+                api(libs.ktor.serialization.kotlinx.json)
+                api(libs.ktor.client.serialization)
+                api(libs.kotlinx.serialization.json)
+                api(libs.kotlinx.coroutines.core)
+            }
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.android)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+
 }
 
 android {
